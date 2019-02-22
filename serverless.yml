@@ -20,6 +20,44 @@ resources:
       Type: String
       Default: "myP@ssW0rd"
   Resources:
+    JenkinsCluster:
+      Type: AWS::ECS::Cluster
+    JenkinsTaskDefinition:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        NetworkMode: "awsvpc"
+        Cpu: "1024"
+        Memory: "2GB"
+        RequiresCompatibilities:
+          - "FARGATE"
+        ContainerDefinitions:
+          -
+            Name: "my-app"
+            MountPoints:
+              -
+                SourceVolume: "my-vol"
+                ContainerPath: "/var/www/my-vol"
+            Image: "amazon/amazon-ecs-sample"
+            EntryPoint:
+              - "/usr/sbin/apache2"
+              - "-D"
+              - "FOREGROUND"
+            Essential: "true"
+          -
+            Name: "busybox"
+            Image: "busybox"
+            EntryPoint:
+              - "sh"
+              - "-c"
+            Command:
+              - "/bin/sh -c \"while true; do /bin/date > /var/www/my-vol/date; sleep 1; done\""
+            Essential: "false"
+            VolumesFrom:
+              -
+                SourceContainer: "my-app"
+        Volumes:
+          -
+            Name: "my-vol"
     JenkinsUser:
       Type: "AWS::IAM::User"
       Properties:
@@ -27,7 +65,7 @@ resources:
         LoginProfile:
           Password: !Ref JenkinsUserPasswordInput
         Policies:
-        - PolicyName: JenkinsAccess
+        - PolicyName: ${file(parameters.yml):PolicyName}
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
