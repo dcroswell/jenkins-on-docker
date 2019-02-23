@@ -69,6 +69,7 @@ resources:
         NetworkConfiguration:
           AwsvpcConfiguration:
             Subnets: ${file(parameters.yml):Subnets}
+        LaunchType: 'FARGATE'
     JenkinsUser:
       Type: AWS::IAM::User
       Properties:
