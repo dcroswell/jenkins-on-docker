@@ -58,14 +58,25 @@ resources:
         Volumes:
           -
             Name: "my-vol"
+    JenkinsApp:
+      Type: AWS::ECS::Service
+      Properties:
+        DesiredCount: 0
+        Cluster:
+          Ref: "JenkinsCluster"
+        TaskDefinition:
+          Ref: "JenkinsTaskDefinition"
+        NetworkConfiguration:
+          AwsvpcConfiguration:
+            Subnets: ${file(parameters.yml):Subnets}
     JenkinsUser:
-      Type: "AWS::IAM::User"
+      Type: AWS::IAM::User
       Properties:
         UserName: !Ref JenkinsUserNameInput
         LoginProfile:
           Password: !Ref JenkinsUserPasswordInput
         Policies:
-        - PolicyName: ${file(parameters.yml):PolicyName}
+        - PolicyName: 'JenkinsPolicy'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:

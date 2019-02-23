@@ -1,1 +1,1 @@
-PolicyName: JenkinsAccess
+Subnets: ["subnet-463e5323", "subnet-7e65ee09"]
