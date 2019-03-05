@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: DevOps Project S3 bucket for Jenkins Server Artifacts
+
+Parameters:
+  CodeBuildArtifactsBucketName:
+    Type: String
+    Description: S3 Bucket name to be created for the project
+    Default: jenkins-project-artifacts
+
+Resources:
+  CodeBuildArtifactsBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Ref CodeBuildArtifactsBucketName
+      Tags:
+        -
+          Key: cloudformation-stack
+          Value: !Ref AWS::StackId
+
+Outputs:
+  CodeBuildArtifactsBucket:
+    Description: Bucket where codebuild artifacts are placed
+    Value: !Ref CodeBuildArtifactsBucket

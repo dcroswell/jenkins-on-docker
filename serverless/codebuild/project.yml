@@ -20,9 +20,15 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
-        Type: 'NO_ARTIFACTS'
+        Type: S3
+        Name: files
+        Location: !Ref CodeBuildArtifactsBucket
+        OverrideArtifactName: true
+        NamespaceType: NONE
+        Packaging: NONE
+        Path: create-eks
       Environment:
-        ComputeType: 'BUILD_GENERAL1_SMALL'
+        ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
           - Name: DEPLOYMENT_S3_BUCKET_NAME
             Type: PLAINTEXT

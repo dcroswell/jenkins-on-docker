@@ -15,3 +15,4 @@ provider:
 resources:
   - ${{file(serverless/roles/codebuild.yml)}}
   - ${{file(serverless/codebuild/project.yml)}}
+  - ${{file(serverless/resources/s3-artifacts.yml)}}
