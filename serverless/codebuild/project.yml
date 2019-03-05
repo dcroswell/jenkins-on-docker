@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: DevOps Project for Jenkins Server
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: A name that will be given to the CodeBuild project that will be created for you
+    Default: JenkinsSeed
+  GithubCloneUrl:
+    Type: String
+    Description: the clone URL of the repository containing the source code for the website
+    Default: https://github.com/dcroswell/jenkins-starter-project.git
+  DomainName:
+    Type: String
+    Description: Fully qualified domain name under which the site will be accessible
+    Default: www.google.com
+
+Resources:
+  JenkinsProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: 'NO_ARTIFACTS'
+      Environment:
+        ComputeType: 'BUILD_GENERAL1_SMALL'
+        EnvironmentVariables:
+          - Name: DEPLOYMENT_S3_BUCKET_NAME
+            Type: PLAINTEXT
+            Value: !Ref DomainName
+        Image: 'aws/codebuild/python:3.6.5'
+        Type: 'LINUX_CONTAINER'
+      Name: !Ref ProjectName
+      ServiceRole: !Ref CodeBuildIAMRole
+      Source:
+        Auth:
+          Type: OAUTH
+        GitCloneDepth: 1
+        InsecureSsl: true
+        Location: !Ref GithubCloneUrl
+        ReportBuildStatus: true
+        Type: GITHUB
+      Triggers:
+        Webhook: true

@@ -1,0 +1,82 @@
+Parameters:
+  JenkinsUserNameInput:
+    Description: The Jenkins user name to be created and granted access mentioned in the template description.
+    Type: String
+    Default: ${opt:username, 'JenkinsUser'}
+  JenkinsUserPasswordInput:
+    Description: The Jenkins user password used for the first time access. This should be changed upon the first login.
+    Type: String
+    Default: "myP@ssW0rd"
+Resources:
+  JenkinsCluster:
+    Type: AWS::ECS::Cluster
+  JenkinsTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: "awsvpc"
+      Cpu: "1024"
+      Memory: "2GB"
+      RequiresCompatibilities:
+        - "FARGATE"
+      ContainerDefinitions:
+        -
+          Name: "my-app"
+          MountPoints:
+            -
+              SourceVolume: "my-vol"
+              ContainerPath: "/var/www/my-vol"
+          Image: "amazon/amazon-ecs-sample"
+          EntryPoint:
+            - "/usr/sbin/apache2"
+            - "-D"
+            - "FOREGROUND"
+          Essential: "true"
+        -
+          Name: "busybox"
+          Image: "busybox"
+          EntryPoint:
+            - "sh"
+            - "-c"
+          Command:
+            - "/bin/sh -c \"while true; do /bin/date > /var/www/my-vol/date; sleep 1; done\""
+          Essential: "false"
+          VolumesFrom:
+            -
+              SourceContainer: "my-app"
+      Volumes:
+        -
+          Name: "my-vol"
+  JenkinsApp:
+    Type: AWS::ECS::Service
+    Properties:
+      DesiredCount: 0
+      Cluster:
+        Ref: "JenkinsCluster"
+      TaskDefinition:
+        Ref: "JenkinsTaskDefinition"
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets: ${file(parameters.yml):Subnets}
+      LaunchType: 'FARGATE'
+  JenkinsUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref JenkinsUserNameInput
+      LoginProfile:
+        Password: !Ref JenkinsUserPasswordInput
+      Policies:
+        - PolicyName: 'JenkinsPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                Resource:
+                  - arn:aws:s3:::*
+              - Effect: Deny
+                Action:
+                  - s3:GetObject
+                  - s3:DeleteObject
+                Resource:
+                  - arn:aws:s3:::*
